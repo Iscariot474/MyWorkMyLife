@@ -1,0 +1,23 @@
+<div class="horizontalBox">
+  <v-btn
+    class="ma-2"
+    color="success"
+    @click="searchClosedDialogOpen"
+  >
+    <i class="fas fa-search"></i>&nbsp;Search All MES Requests
+  </v-btn>
+  <v-btn
+    class="ma-2"
+    @click="printAllNewMes"
+  >
+    <i class="fas fa-print"></i>&nbsp;Print All Unmailed Reports Below
+  </v-btn>
+  <!-- New Button for "Print Next 50 Reports" -->
+  <v-btn
+    class="ma-2"
+    color="info"
+    @click="printNext50Reports"
+  >
+    <i class="fas fa-print"></i>&nbsp;Print Next 50 Reports
+  </v-btn>
+</div>

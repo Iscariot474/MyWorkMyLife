@@ -1,0 +1,515 @@
+<template>
+  <div>
+    <div class="topBar">
+      <div class="topBarItemLeft">
+        <img class="topLogo" src="../../common/assets/images/wegmans_logo.png"/>
+        <v-menu
+          offset-y
+          :close-on-click="closedOnClick"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              color="primary"
+              dark
+              v-bind="attrs"
+              v-on="on"
+              plain
+            >
+              Choose Form <i class="fas fa-caret-down"></i>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item
+              v-for="(item, index) in dropDownForms"
+              :key="index"
+              @click="formVisible=item['title']"
+            >
+              <v-list-item-title >{{ item.title }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
+      <div class="topBarItemCenter">
+          <h3>{{formVisible}}</h3>
+      </div>
+      <div class="topBarItemRight">
+        <v-btn class="logoutButton" @click="openLogoutDialog=true">
+          Logout
+        </v-btn>
+      </div>
+    </div>
+    <hr/>
+    <div class="mainContainer">
+      <div class="mainContents">
+        <div class="verticalBox" v-if="formVisible=='' || formVisible=='Home'">
+          <div class="horizontalBox">
+            <h2>Select a Form</h2>
+          </div>
+          <div class="horizontalBox" v-if="formVisible=='' || formVisible=='Home'">
+            <div class="verticalBox" style="width:315px;">
+              <v-btn
+                class="ma-2 white--text"
+                color="grey darken-3"
+                @click="formVisible='Blacklist Store Level'"
+                v-if="viewableFormsListed.includes('Blacklist Store Level')"
+              >
+                <i class="fas fa-ban"></i>&nbsp;Store Blacklist
+              </v-btn>
+              <v-btn
+                class="ma-2 white--text"
+                color="red darken-2"
+                @click="formVisible='HIPAA Disclosure'"
+                v-if="viewableFormsListed.includes('HIPAA Disclosure')"
+              >
+                <i class="fas fa-file-medical"></i>&nbsp;HIPAA Disclosure
+              </v-btn>
+              <v-btn
+                class="ma-2 white--text"
+                color="deep-purple darken-3"
+                @click="formVisible='Quality Incident'"
+                v-if="viewableFormsListed.includes('Quality Incident')"
+              >
+                <i class="fas fa-prescription-bottle"></i>&nbsp;Quality Incident
+              </v-btn>
+              <v-btn
+                class="ma-2 white--text"
+                color="green darken-3"
+                @click="formVisible='MES Request'"
+                v-if="viewableFormsListed.includes('MES Request')"
+              >
+                <i class="fas fa-file-alt"></i>&nbsp;MES Request
+              </v-btn>
+              <v-btn
+                class="ma-2 white--text"
+                color="amber darken-4"
+                @click="launchPOS"
+                v-if="viewableFormsListed.includes('POS Exceptions')"
+              >
+                <i class="fas fa-search-dollar"></i>&nbsp;POS-Exceptions
+              </v-btn>
+              <v-btn
+                class="ma-2 white--text"
+                color="amber darken-4"
+                @click="launchRefund"
+                v-if="viewableFormsListed.includes('Refund Report')"
+              >
+                <i class="fas fa-tags"></i>&nbsp;Refund Report
+              </v-btn>
+            </div>
+            <div class="verticalBox">
+              <v-btn
+                class="ma-2 white--text"
+                color="grey darken-3"
+                @click="formVisible='Blacklist Corporate Level'"
+                v-if="viewableFormsListed.includes('Blacklist Corporate Level')"
+              >
+                <i class="fas fa-ban"></i>&nbsp;Blacklist Corporate Level
+              </v-btn>
+              <v-btn
+                class="ma-2 white--text"
+                color="red darken-2"
+                @click="formVisible='HIPAA Disclosure Viewer'"
+                v-if="viewableFormsListed.includes('HIPAA Disclosure Viewer')"
+              >
+                <i class="fas fa-search"></i><i class="fas fa-file-medical"></i>&nbsp;HIPAA Disclosure Viewer
+              </v-btn>
+              <v-btn
+                class="ma-2 white--text"
+                color="deep-purple darken-3"
+                @click="formVisible='Quality Incident Viewer'"
+                v-if="viewableFormsListed.includes('Quality Incident Viewer')"
+              >
+                <i class="fas fa-search"></i><i class="fas fa-prescription-bottle"></i>&nbsp;Quality Incident Viewer
+              </v-btn>
+              <v-btn
+                class="ma-2 white--text"
+                color="green darken-3"
+                @click="formVisible='MES Viewer'"
+                v-if="viewableFormsListed.includes('MES Viewer')"
+              >
+                <i class="fas fa-search"></i><i class="fas fa-file-alt"></i>&nbsp;MES Viewer
+              </v-btn>
+              <v-btn
+                class="ma-2 white--text"
+                color="amber darken-4"
+                @click="launchIVR"
+                v-if="viewableFormsListed.includes('IVR Report')"
+              >
+                <i class="fas fa-phone-alt"></i>&nbsp;IVR Report
+              </v-btn>
+              <v-btn
+                class="ma-2 white--text"
+                color="amber darken-4"
+                @click="launchIVR"
+                v-if="viewableFormsListed.includes('VA Quality Report')"
+              >
+                <i class="far fa-file-chart-line"></i>&nbsp;VA Quality Report
+              </v-btn>
+            </div>
+          </div>
+        </div>
+        <blacklist-form
+          v-if="(formVisible=='Blacklist Corporate Level' & idType=='corporate')"
+        ></blacklist-form>
+        <blacklist-form-store
+          v-if="formVisible=='Blacklist Store Level'"
+          :idType="idType"
+          :storeNumber="storeNumber"
+        ></blacklist-form-store>
+        <hIPAA-disclosure-main
+          v-if="formVisible=='HIPAA Disclosure'|formVisible=='HIPAA Disclosure Viewer'"
+          :formVisible="formVisible"
+          @changeForm="changeForm"
+        ></hIPAA-disclosure-main>
+        <quality-incident-main
+          v-if="formVisible=='Quality Incident'|formVisible=='Quality Incident Viewer'"
+          :formVisible="formVisible"
+          :pomID="pomID"
+          :wegmansID="wegmansID"
+          @changeForm="changeForm"
+        >
+        </quality-incident-main>
+        <medical-expense-main
+          v-if="formVisible=='MES Request'|formVisible=='MES Viewer'"
+          :formVisible="formVisible"
+          @changeForm="changeForm"
+        >
+        </medical-expense-main>
+        <div class="submittedForm" v-if="formVisible=='Completed Form'">
+          <h2 v-if="completedRefID!='Did not Submit. Session Timed Out'">Submitted {{ formCompletedName }} Form</h2>
+          <h2>Form Ref ID: {{ completedRefID=='Did not Submit. Session Timed Out' ? '' : wegmansID }}{{ completedRefID }}</h2>
+          <v-btn
+            class="ma-2"
+            color="success"
+            @click="newForm"
+            v-if="completedRefID!='Did not Submit. Session Timed Out'"
+          >
+            Start a New {{ formCompletedName }} Form
+          </v-btn>
+          <v-btn
+            class="ma-2"
+            color="success"
+            @click="formViewer"
+            v-if="formAllowed"
+          >
+            Go to {{ formCompletedName }} Viewer
+          </v-btn>
+        </div>
+      </div>
+    </div>
+    <v-dialog v-model="openLogoutDialog" max-width="340">
+      <v-card>
+        <v-card-title class="headline">Logout from Forms?</v-card-title>
+        <v-card-text>You will lose any unsubmitted information</v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            text
+            class="text-none"
+            @click="logout"
+          >
+            Yes, Logout
+          </v-btn>
+          <v-btn
+            color="primary"
+            dark
+            class="text-none"
+            @click="openLogoutDialog=false"
+          >
+            Cancel
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    
+    <div class="rightProgress" v-if="logoVisible">
+      <img class="topLogo" src="../../common/assets/images/poweredBy1010_transparent.png"/>
+    </div>
+    
+  </div>
+
+</template>
+
+<script>
+
+import AuthMachine from 'common/machines/auth/authMachine'
+import DataMachine from 'mainFrontEnd/machines/dataMachine'
+import BlacklistForm from 'mainFrontEnd/components/blacklistComponents/blacklistForm'
+import BlacklistFormStore from 'mainFrontEnd/components/blacklistComponents/blacklistFormStore'
+import HIPAADisclosureMain from 'mainFrontEnd/components/hipaaDisclosureComponents/hipaaDisclosureMain'
+import QualityIncidentMain from 'mainFrontEnd/components/qualityIncidentComponents/qualityIncidentMain'
+import MedicalExpenseMain from 'mainFrontEnd/components/medicalExpenseQueueComponents/medicalExpenseMain'
+
+export default {
+  name: 'MainFrontEnd',
+   components: {
+    BlacklistForm,
+    BlacklistFormStore,
+    HIPAADisclosureMain,
+    QualityIncidentMain,
+    MedicalExpenseMain
+
+  },
+  data:function() {
+    return {
+      progressPercent: 0,
+      progressVisible: false,
+      logoVisible: true,
+      closedOnClick: true,
+      formVisible: '',
+      completedRefID: '',
+      formCompletedName: '',
+      openLogoutDialog: false,
+      sessionID: 0,
+      launchApp: ''
+    }
+  },
+  props:{
+    idType: {
+      required: true
+    },
+    wegmansID: {
+      required: true
+    },
+    storeNumber: {
+      required: true
+    },
+    viewableForms: {
+      required: true
+    },
+    pomID: {
+      required: true
+    }
+  },
+  created() {
+    AuthMachine.subscribe(({ context }) => {
+      this.sessionID = context.sid
+    })
+  },
+  computed:{
+    menuForms: function () {
+      if (this.idType == 'corporate') {
+        const corpForms = this.viewableForms
+        return corpForms 
+      }
+      else if (this.idType == 'store') {
+        const storeForms = [
+          { title: 'Blacklist Store Level'}
+        ]
+        return storeForms 
+      }
+      else {
+        const noForms = [
+          { title: 'No Forms Available'}
+        ]
+        return noForms 
+      }
+    },
+    dropDownForms: function() {
+      var items = []
+      var itemsOut = []
+      this.menuForms.forEach(val => val.title=='IVR Report' ? itemsOut.push(val) : items.push(val))
+      var finalItems = []
+      items.forEach(val => val.title=='POS Exceptions' ? itemsOut.push(val) : finalItems.push(val))
+      return finalItems
+    },
+    viewableFormsListed: function() {
+      return this.viewableForms.map(val => val.title)
+    },
+    formAllowed: function() {
+      var showButton = false
+      if(this.completedRefID!='Did not Submit. Session Timed Out'){
+        if (this.formCompletedName == 'MES Request') {
+          showButton = this.viewableFormsListed.includes('MES Viewer')
+        }
+        else {
+          showButton = this.viewableFormsListed.includes(this.formCompletedName + ' Viewer')
+        }
+      }
+      return showButton
+    }
+  },
+  watch: {
+    formVisible: function (val) {
+      const progNo = ['MES Request','HIPAA Disclosure','Quality Incident']
+      if (progNo.includes(val)){
+        this.logoVisible = true
+      }
+      else {
+        this.logoVisible = false
+      }
+    },
+    sessionID: function () {
+      const getHost=window.location
+      if (this.launchApp=='IVR'){
+        if (getHost.host=='localhost:8080'){
+          window.open('https://wegmans.corp.1010data.com/prime-17.35/gw?path=wegmans.dash.ivr_call_status_report&action=popopen&ptype=quickapp&sid='+this.sessionID, '_blank')
+        }
+        else {
+          window.open('https://wegmans.edge.1010data.com/prime-17.35/gw?path=wegmans.dash.ivr_call_status_report&action=popopen&ptype=quickapp&sid='+this.sessionID,'_blank')
+        }
+      } else if (this.launchApp=='Refund'){
+        if (getHost.host=='localhost:8080'){
+          window.open('https://wegmans.corp.1010data.com/prime-17.35/gw?path=wegmans.dash.refundreport&action=popopen&ptype=quickapp&sid='+this.sessionID, '_blank')
+        }
+        else {
+          window.open('https://wegmans.edge.1010data.com/prime-17.35/gw?path=wegmans.dash.refundreport&action=popopen&ptype=quickapp&sid='+this.sessionID,'_blank')
+        }
+      } else {
+        if (getHost.host=='localhost:8080'){
+          window.open('https://wegmans.corp.1010data.com/prime-17.35/gw?path=wegmans.dash.pos_exceptions_report&action=popopen&ptype=quickapp&sid='+this.sessionID, '_blank')
+        }
+        else {
+          window.open('https://wegmans.edge.1010data.com/prime-17.35/gw?path=wegmans.dash.pos_exceptions_report&action=popopen&ptype=quickapp&sid='+this.sessionID,'_blank')
+        }
+      }
+    }
+  },
+  methods: {
+    logout: function(){
+      this.openLogoutDialog=false
+      AuthMachine.send({
+        type: 'LOGOUT'
+      })
+    },
+    changeForm(form, refID, formName){
+      this.formVisible = form
+      this.completedRefID = refID
+      this.formCompletedName = formName
+    },
+    newForm(){
+      DataMachine.send('NEW_FORM')
+      this.formVisible = this.formCompletedName
+    },
+    formViewer(){
+      DataMachine.send('NEW_FORM')
+      if (this.formCompletedName == 'MES Request') {
+        this.formVisible = 'MES Viewer'
+      }
+      else {
+        this.formVisible = this.formCompletedName + ' Viewer'
+      }
+    },
+    launchIVR(){
+      const getHost=window.location
+      if (this.sessionID==0){
+        this.launchApp = 'IVR'
+        AuthMachine.send({
+          type: 'GET_SESSION'
+        })
+      } else {
+        if (getHost.host=='localhost:8080'){
+          window.open('https://wegmans.corp.1010data.com/prime-17.35/gw?path=wegmans.dash.ivr_call_status_report&action=popopen&ptype=quickapp&sid='+this.sessionID, '_blank')
+        }
+        else {
+          window.open('https://wegmans.edge.1010data.com/prime-17.35/gw?path=wegmans.dash.ivr_call_status_report&action=popopen&ptype=quickapp&sid='+this.sessionID,'_blank')
+        }
+      }
+    },
+    launchRefund(){
+      const getHost=window.location
+      if (this.sessionID==0){
+        this.launchApp = 'Refund'
+        AuthMachine.send({
+          type: 'GET_SESSION'
+        })
+      } else {
+        if (getHost.host=='localhost:8080'){
+          window.open('https://wegmans.corp.1010data.com/prime-17.35/gw?path=wegmans.dash.refundreport&action=popopen&ptype=quickapp&sid='+this.sessionID, '_blank')
+        }
+        else {
+          window.open('https://wegmans.edge.1010data.com/prime-17.35/gw?path=wegmans.dash.refundreport&action=popopen&ptype=quickapp&sid='+this.sessionID,'_blank')
+        }
+      }
+    },
+    launchPOS(){
+      const getHost=window.location
+      if (this.sessionID==0){
+        this.launchApp = 'POS'
+        AuthMachine.send({
+          type: 'GET_SESSION'
+        })
+      } else {
+        if (getHost.host=='localhost:8080'){
+          window.open('https://wegmans.corp.1010data.com/prime-17.35/gw?path=wegmans.dash.pos_exceptions_report&action=popopen&ptype=quickapp&sid='+this.sessionID, '_blank')
+        }
+        else {
+          window.open('https://wegmans.edge.1010data.com/prime-17.35/gw?path=wegmans.dash.pos_exceptions_report&action=popopen&ptype=quickapp&sid='+this.sessionID,'_blank')
+        }
+      }
+    }
+  }
+}
+</script>
+<style lang="scss" src="common/assets/styles/mainApp.scss"></style>
+<style lang="scss" scoped>
+  .content-row {
+    margin-right: 2rem !important;
+  }
+  .mainWrap {
+    padding:10px;
+    font-family: 'Roboto', sans-serif;
+    background-image: url('../../common/assets/images/wegmans_pharm2.png');
+    background-repeat: repeat;
+  }
+  
+  .mainContainer {
+    display: flex;
+    justify-content: center;
+  }
+
+  .topBar {
+    display: flex;
+    justify-content: space-between;
+    max-height:38px;
+    background-color: #ffffffee;
+  }
+
+  .topBarItemLeft {
+    max-height: 100%;
+    width: 105px;
+    display: flex;
+    flex: 1;
+    justify-content: left;
+  }
+
+  .topBarItemCenter {
+    max-height: 100%;
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .submittedForm{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .topBarItemRight {
+    max-height: 100%;
+    display: flex;
+    flex: 1;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .rightProgress{
+    position: fixed;
+    right:0px;
+    bottom:0px;
+  }
+
+  .logoutButton{
+    margin-right: 14px;
+  }
+
+  .topLogo{
+    margin-left: 14px;
+    max-height: 100%;
+    max-width:105px;
+  }
+
+</style>

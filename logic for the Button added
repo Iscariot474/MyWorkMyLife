@@ -1,0 +1,23 @@
+methods: {
+  ...,
+  printNext50Reports() {
+    // Filter the unprinted reports
+    const unprintedReports = this.mesUnprinted.filter(report => report.status === "Unprinted");
+    
+    // Get the next 50 reports
+    const next50Reports = unprintedReports.slice(0, 50);
+    
+    if (next50Reports.length === 0) {
+      this.$toast.error("No more unprinted reports to print.");
+      return;
+    }
+
+    // Trigger the print logic for each report
+    next50Reports.forEach(report => {
+      this.printMesReport(report); // Reuse your existing print function
+    });
+
+    this.$toast.success(`${next50Reports.length} reports are being printed.`);
+  },
+  ...
+}

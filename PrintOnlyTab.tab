@@ -1,0 +1,377 @@
+<template>
+  <div>
+    <div class="printBox" v-if="printForm!='mes_report_unprinted'">
+      <div class="dialogBtn" style="width:770px">
+        <div class="verticalBox" v-if="printForm=='quality_incident'">
+          <div class="horizontalBox">
+            <h3>Completed Quality Incident Form</h3>
+          </div>
+          <div class="horizontalBox">
+            (ID:{{printRef}})
+          </div>
+          <incident-information-section
+            :formFilledValues="formFilledValues"
+            :rules="rules"
+            :storeDimension="storeD"
+            :viewOnly="true"
+          >
+          </incident-information-section>
+        </div>
+        <div class="verticalBox" v-if="printForm=='quality_incident'">
+          <patient-information-section
+            :formFilledValues="formFilledValues"
+            :rules="rules"
+            :viewOnly="true"
+          >
+          </patient-information-section>
+        </div>
+        <div class="verticalBox" v-if="printForm=='quality_incident'">
+          <incident-details-section
+            :formFilledValues="formFilledValues"
+            :rules="rules"
+            :viewOnly="true"
+          >
+          </incident-details-section>
+        </div>
+        <div class="verticalBox" v-if="printForm=='quality_incident'">
+          <prescription-information-section
+            :formFilledValues="formFilledValues"
+            :rules="rules"
+            :viewOnly="true"
+          >
+          </prescription-information-section>
+        </div>
+        <div class="verticalBox" v-if="printForm=='quality_incident'">
+          <corrective-action-section
+            :formFilledValues="formFilledValues"
+            :rules="rules"
+            :viewOnly="true"
+          >
+          </corrective-action-section>
+        </div>
+        <div class="verticalBox" v-if="printForm=='quality_follow_up'">
+          <div class="horizontalBox">
+            <h3>Completed Quality Follow Up Form</h3>
+          </div>
+          <div class="horizontalBox">
+            (ID:{{printRef}})
+          </div>
+          <div class="boxSectionWrap formSectionWrap">
+            <div class="boxSectionItem">
+              <div class="sectionTitle">
+                  Follow Up Information
+              </div>
+              <div class="horizontalBox">
+                <v-text-field
+                  :label="formFilledValues.qualityRefId.label"
+                  :rules="rules[formFilledValues.qualityRefId.rule]"
+                  v-model="formFilledValues.qualityRefId.value"
+                  style="width:180px;margin-right:10px;"
+                  outlined
+                  readonly
+                ></v-text-field>
+                <v-text-field
+                  :label="formFilledValues.storeNumber.label"
+                  :rules="rules[formFilledValues.storeNumber.rule]"
+                  v-model="formFilledValues.storeNumber.value"
+                  style="width:80px;margin-right:10px;"
+                  outlined
+                  readonly
+                ></v-text-field>
+                <v-text-field
+                  :label="formFilledValues.reviewDate.label"
+                  :rules="rules[formFilledValues.reviewDate.rule]"
+                  v-model="formFilledValues.reviewDate.value"
+                  :maxlength="formFilledValues.reviewDate.maxlength"
+                  style="width:160px"
+                  outlined
+                  readonly
+                ></v-text-field>
+              </div>
+            </div>
+          </div>
+          <incident-process-evaluation
+            :followUpFilled="formFilledValues"
+            :viewOnly="true"
+            :rules="rules"
+          >
+          </incident-process-evaluation>
+          <incident-follow-up-summary
+            :followUpFilled="formFilledValues"
+            :viewOnly="true"
+            :rules="rules"
+          >
+          </incident-follow-up-summary>
+        </div>
+        <div class="verticalBox" v-if="printForm=='mes_report'">
+          <mes-report-print
+            :mesReportResults="mesReportResultsDisplay"
+            :formFilledValues="formFilledValues"
+            multi="false"
+          >
+          </mes-report-print>
+        </div>
+        <div class="verticalBox" v-if="printForm=='coaching_prep'">
+          <coaching-prep-report
+            :coachingValues="resultsForPrinting"
+          >
+          </coaching-prep-report>
+        </div>
+      </div>
+    </div>
+    <div style="200px" v-if="printForm=='mes_report_unprinted'&&multiFilled.length==0">
+      <div class="verticalBox">
+        <p>Loading Data</p>
+        <v-progress-linear
+          indeterminate
+          color="black"
+        ></v-progress-linear>
+      </div>
+    </div>
+      <template v-for="report in multiFilled" v-if="printForm=='mes_report_unprinted'">
+        <mes-report-print
+          :mesReportResults="report.dataResult"
+          :formFilledValues="report.camelLabels"
+          multi="true"
+        >
+        </mes-report-print>
+        <div class="pagebreak"> </div>
+      </template>
+      <v-btn
+        class="mx-2 printPageButton"
+        fab
+        dark
+        small
+        @click="printPage"
+
+      >
+        <v-icon>
+          fas fa-print
+        </v-icon>
+      </v-btn>
+  </div>
+
+</template>
+
+<script>
+
+import PrintMachine from 'mainFrontEnd/machines/printMachine'
+import IncidentInformationSection from 'mainFrontEnd/components/qualityIncidentComponents/incidentInformationSection'
+import IncidentDetailsSection from 'mainFrontEnd/components/qualityIncidentComponents/incidentDetailsSection'
+import PrescriptionInformationSection from 'mainFrontEnd/components/qualityIncidentComponents/prescriptionInformationSection'
+import CorrectiveActionSection from 'mainFrontEnd/components/qualityIncidentComponents/correctiveActionSection'
+import MesReportPrint from 'mainFrontEnd/components/medicalExpenseQueueComponents/mesReportPrint.vue'
+import incidentProcessEvaluation from 'mainFrontEnd/components/qualityIncidentComponents/incidentProcessEvaluationSection'
+import incidentFollowUpSummary from 'mainFrontEnd/components/qualityIncidentComponents/incidentFollowUpSummarySection'
+import CoachingPrepReport from 'mainFrontEnd/components/qualityIncidentComponents/coachingPrepReport'
+
+export default {
+  name: 'PrintOnlyTab',
+   components: {
+    IncidentInformationSection,
+    IncidentDetailsSection,
+    PrescriptionInformationSection,
+    CorrectiveActionSection,
+    MesReportPrint,
+    incidentProcessEvaluation,
+    incidentFollowUpSummary,
+    CoachingPrepReport
+  },
+  data:function() {
+    return {
+      printRef: '',
+      printForm: '',
+      tentenResults: {},
+      resultsForPrinting: {},
+      multiResultsForPrinting: [],
+      multiMesReportResults: {},
+      formFilledValues: {},
+      multiFilled: [],
+      mesReportResults: [],
+      storeD: [],
+      rules: {
+        required: [val => (val || '').length > 0 || 'This field is required']
+      },
+      formLabelsStatic: {"reportAuthor":"Report Author","submitDate":"Today's Date (YYYY-MM-DD)","incidentDate":"Date of Incident (YYYY-MM-DD)","incidentTime":"Time of Workflow Step","locationType":"Location Type","locationValue":"Store Number","patientNumber":"Patient Information","lastName":"Last Name","firstName":"First Name","middleInitial":"Middle Initial","dateOfBirth":"Date of Birth","gender":"Gender","phoneNumber":"Phone Number","address":"Address","city":"City","state":"State","zipCode":"ZIP","notifierName":"Notified by (e.g. Customer's name, MD's name)","notificationDate":"Date of Notification (YYYY-MM-DD)","rxNumber":"Rx Number involved in incident","rxFillDate":"Fill Date (YYYY-MM-DD)","rxFillType":"Rx Type","rxSource":"Prescription Source","incidentOrigin":"Incident Origin","whatOccurred":"What occurred?","wlbInvolved":"Did incident occur performing WLB?","wlbLocation":"Where did WLB occur?","pharmacistNumber":"Pre-verification or Verfiication Pharmacist Number","missedClinicalType":"Selected type of missed clinical interaction","missedClinicalAdditional":"Provide Additional Information","rxMedicationName":"Medication Name","dispensedMedicationName":"Medication Name","rxStrength":"Strength","dispensedStrength":"Strength","rxDirections":"Directions","dispensedDirections":"Directions","rxQuantity":"Quantity","dispensedQuantity":"Quantity","rxPrescriberName":"Name of Prescriber","dispensedPrescriberName":"Name of Prescriber","replacementGiven":"Was replacement medication given?","replacementProvider":"Who provided the replacement?","replacementDate":"Replacement Date","medicationRetrieved":"Was original medication retrieved?","medicationIngested":"Was the original medication ingested?","medicationDosesIngested":"How many doses were ingested?","prescriberContacted":"Did the pharmacy contact the prescriber of the incident?","prescriberContactedDate":"Contact Date","patientContactedPrescriber":"Did the patient contact the prescriber?","healthImpacted":"Does the patient believe their state of health has been affected?","healthImpactedExplain":"Explain how their health was impacted","notifyEmailStore":"Was an email sent to notify store manager and POM?","notifyEmailStoreDate":"Notification Date (YYYY-MM-DD)","medicalAttentionReceived":"Was medical attention received?","practionerName":"Treating Practioner Name","practionerAddress":"Practioner Address","practionerCity":"Practioner City","practionerState":"State","practionerZip":"Zip Code","practionerPhone":"Practioner Phone #","medicalAttentionDetail":"Description of Medical Attention Received","agencyInvolved":"Was an Outside Agency involved? (e.g. Police, Paramedics, etc.)","agencyName":"Agency Name","agencyRepName":"Agency Rep Name","agencyAddress":"Agency Address","agencyCity":"Agency City","agencyState":"State","agencyZip":"Zip Code","agencyPhone":"Agency Phone #","agencyCaseNumber":"Agency Case #"},
+      formLabelsStaticFollowUp: {"storeNumber":"Store","qualityRefId":"Incident Reference ID #","reviewDate":"Date","receptionEmployeeNumber":"Employee Number","receptionProcessIssue":"Where Process Broke Down","dataEntryEmployeeNumber":"Employee Number","dataEntryProcessIssue":"Where Process Broke Down","productDispensingEmployeeNumber":"Employee Number","productDispensingProcessIssue":"Where Process Broke Down","durPvEmployeeNumber":"Employee Number","durPvProcessIssue":"Where Process Broke Down","verificationEmployeeNumber":"Employee Number","verificationProcessIssue":"Where Process Broke Down","releaseToPatientEmployeeNumber":"Employee Number","releaseToPatientProcessIssue":"Where Process Broke Down","contactManagerEmployeeNumber":"Employee Number","contactManagerProcessIssue":"Where Process Broke Down","counsellingEmployeeNumber":"Employee Number","counsellingProcessIssue":"Where Process Broke Down","coachingSummary":"Provide a brief summary of the performance coaching completed at the store (Include any mitigating circumstance identified by the employee and any action taken at the store to correct)","coachingCompletionDate":"Date Coaching Completed","coachingPharmacyManager":"Pharmacy Manager","employeeActions":"Employee Actions"}
+    }
+  },
+  props:{
+   
+  },
+  created() {
+    PrintMachine.subscribe(({ context }) => {
+      this.tentenResults = context.dataResults
+    })
+    this.printRef = this.$route.query.print_ref
+    this.printForm = this.$route.query.form
+    if (this.printForm=='mes_report_unprinted'){
+      this.getMultiReportsForPrinting()
+    }
+    else{
+      this.getSingleReportForPrinting()
+    }
+    
+  },
+  computed:{
+    mesReportResultsDisplay: function(){
+      if (this.mesReportResults.length==1){
+        return [{"drug_ndc":"empty","prim_patient_pay":0}]
+      }
+      else if (this.mesReportResults.length>1){
+        return this.mesReportResults.slice(1)
+      }
+      else {
+        return []
+      }
+    },
+  },
+  watch: {
+    tentenResults: function (data) {
+      this[data.variableName] = data.data
+    },
+    multiMesReportResults: function() {
+      this.multiResultsForPrinting.forEach( row => {
+        var formTemps = {}
+        var labels = this.formLabelsStatic
+        Object.keys(row).forEach(key => formTemps[key.replace(/_([a-z])/g, function (g) { return g[1].toUpperCase(); })]={'value':row[key]==''?' ':row[key],'label': labels[key.replace(/_([a-z])/g, function (g) { return g[1].toUpperCase(); })],'options':[]})
+        row['camelLabels'] = formTemps
+        row['dataResult']=[]
+        this.multiMesReportResults.forEach( record => {
+          if (record.mes_request_ref_id==row.mes_request_ref_id){
+            row['dataResult'].push(record)
+          }
+        })
+        if (row['dataResult'].length==0){
+          row['dataResult'].push({"drug_ndc":"empty","prim_patient_pay":0})
+        }
+      })
+      this.multiFilled = this.multiResultsForPrinting
+    },
+    multiResultsForPrinting: function() {
+      var patients=[]
+      var starts=[]
+      var ends=[]
+      var refs=[]
+      this.multiResultsForPrinting.forEach(rec => {
+        patients.push(rec.patient_number.toString().replaceAll(',',' '))
+        starts.push(rec.report_start_date)
+        ends.push(rec.report_end_date)
+        refs.push(rec.mes_request_ref_id)
+      })
+      var xmlVars = {
+        patients: patients.join(),
+        startdates: starts.join(),
+        enddates: ends.join(),
+        refs: refs.join()
+      }
+
+      var path = "medicalExpenseQueue/medicalExpenseSummaryReportMulti.xml"
+      var resultsVar = "multiMesReportResults"
+      PrintMachine.send({
+        type: 'LOAD_DATA_FOR_PRINT',
+        xmlVars,
+        path,
+        resultsVar
+      })
+      // var formids=[]
+      // var multiFormsFilled = {}
+        // if(!formids.includes(row.mes_request_ref_id)){
+        //   formids.push(row.mes_request_ref_id)
+        //   multiFormsFilled[row.mes_request_ref_id]=[]
+        // }
+        // multiFormsFilled[row.mes_request_ref_id].push(row)
+      
+    // this.multiFilled = multiFormsFilled
+    },
+    resultsForPrinting: function() {
+      if (typeof this.resultsForPrinting[0] !== 'undefined'&&this.printForm!=='coaching_prep'){
+        const singleRecord = this.resultsForPrinting[0]
+        var formTemps = {}
+        var labels = {}
+        if (this.printForm=='quality_follow_up'){
+          labels = this.formLabelsStaticFollowUp
+        }
+        else{
+          labels = this.formLabelsStatic
+        }
+        Object.keys(singleRecord).forEach(key => formTemps[key.replace(/_([a-z])/g, function (g) { return g[1].toUpperCase(); })]={'value':singleRecord[key]==''?' ':singleRecord[key],'label': labels[key.replace(/_([a-z])/g, function (g) { return g[1].toUpperCase(); })],'options':[]})
+        this.formFilledValues = formTemps
+        if (this.printForm=='mes_report'){
+          var xmlVars = {
+            patient_number: this.formFilledValues.patientNumber.value,
+            report_start_date: this.formFilledValues.reportStartDate.value,
+            report_end_date: this.formFilledValues.reportEndDate.value
+          }
+          var path = "medicalExpenseQueue/medicalExpenseSummaryReport.xml"
+          var resultsVar = "mesReportResults"
+          PrintMachine.send({
+            type: 'LOAD_DATA_FOR_PRINT',
+            xmlVars,
+            path,
+            resultsVar
+          })
+        }
+      }
+    },
+  },
+  methods: {
+    getSingleReportForPrinting: function(){
+      var xmlVars = {
+         print_ref_number: this.printRef,
+         print_form: this.printForm,
+      }
+      var path = "common/dataForPrinting.xml"
+      var resultsVar = "resultsForPrinting"
+      PrintMachine.send({
+        type: 'LOAD_DATA_FOR_PRINT',
+        xmlVars,
+        path,
+        resultsVar
+      })
+    },
+    getMultiReportsForPrinting: function(){
+      var xmlVars = {
+         print_ref_number: '',
+         print_form: 'mes_report_unprinted'
+      }
+      var path = "common/dataForPrinting.xml"
+      var resultsVar = "multiResultsForPrinting"
+      PrintMachine.send({
+        type: 'LOAD_DATA_FOR_PRINT',
+        xmlVars,
+        path,
+        resultsVar
+      })
+    },
+    printPage: function() {
+      window.print()
+    }
+  }
+}
+</script>
+<style lang="scss" src="common/assets/styles/mainApp.scss"></style>
+<style lang="scss" scoped>
+.printBox{
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.printPageButton{
+  position: fixed;
+  top: 6px;
+  right: 5px;
+}
+
+@media print {
+  .printPageButton{
+    display: none
+  }
+  .pagebreak { 
+    clear: both;
+    page-break-after: always;
+  }
+}
+
+</style>

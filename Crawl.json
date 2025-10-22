@@ -1,0 +1,89 @@
+{
+  "type": "object",
+  "required": [],
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "job_type": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "experience_level": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "years_experience_min": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "years_experience_max": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "salary_raw": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "salary_min": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "salary_max": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "salary_currency": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "date_posted": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [],
+        "properties": {}
+      }
+    },
+    "apply_url": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    }
+  }
+}

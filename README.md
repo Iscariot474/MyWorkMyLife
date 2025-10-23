@@ -1,4 +1,5 @@
 # MyWorkMyLife
-Work witrh VUE.js
+Work with VUE.js
 
-Coding lines added here
+
+Coding lines I'm doing in overall ;)
